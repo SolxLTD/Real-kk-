@@ -1,7 +1,7 @@
 """
 card_data.py
 ------------
-Loads card metadata from the competition-provided CSV schema:
+it Loads card metadata from the competition-provided CSV schema:
 Card ID, Card Name, Expansion, Collection No., Stage, Category,
 Previous Stage, HP, Type, Weakness, Resistance, Retreat, Rule
 (+ attack sub-fields, which are NOT part of the official schema shown
@@ -20,7 +20,7 @@ from typing import Optional, List, Dict
 @dataclass
 class Attack:
     name: str
-    cost: str          # e.g. "FF" = 2 Fire energy, "C" = 1 colorless
+    cost: str          
     damage: int
 
     def cost_dict(self) -> Dict[str, int]:
