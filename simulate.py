@@ -1,22 +1,5 @@
 """
-simulate.py
------------
-Evaluation harness. Runs many games and reports the metrics that map
-directly onto the Strategy Category "Model Score" rubric (70% weight):
 
-  - "How consistently does the model perform under repeated matches
-     and stable conditions?"          -> win-rate + variance across
-                                          many seeded self-play games
-  - "How well does the strategy avoid over-reliance on specific
-     initial states, matchups, or situational advantages?"
-                                       -> win-rate broken out by which
-                                          deck went first, and heuristic
-                                          agent vs. random-baseline agent
-                                          (an ablation, not just a self-play
-                                          number that could hide brittleness)
-
-Run: python simulate.py
-"""
 
 import random
 import statistics as stats
