@@ -1,20 +1,6 @@
 """
 engine.py
 ---------
-A simplified, self-contained Pokemon TCG battle engine.
-
-WHY THIS EXISTS: the real Kaggle simulator's observation/action API isn't
-visible to us yet (it lives behind the Simulation Category's Code/Data
-tabs, which need a logged-in Kaggle session to inspect). Rather than
-wait, this engine implements the core official ruleset well enough to
-(a) test deck-building decisions, (b) develop and benchmark a heuristic
-policy, and (c) measure the exact things the rubric scores -- win-rate
-stability and matchup generalization -- using self-play.
-
-Once the real environment API is visible, only ONE seam needs to change:
-`Agent.choose_action(observation)` -- everything else (deck logic,
-heuristics, evaluation harness) ports over conceptually unchanged.
-
 Simplifications vs. full official rules (documented, not hidden):
 - No Special Conditions (poison/burn/etc.), Abilities, or item effects
   beyond the 5 sample Trainers implemented below.
@@ -38,7 +24,7 @@ MAX_TURNS = 60  # safety cap to avoid infinite games
 class InPlayPokemon:
     card: Card
     damage: int = 0
-    attached_energy: List[str] = field(default_factory=list)  # list of energy type letters
+    attached_energy: List[str] = field(default_factory=list)  
 
     @property
     def current_hp(self) -> int:
@@ -103,7 +89,7 @@ class Player:
     def has_lost(self) -> bool:
         no_pokemon = self.active is None and not self.bench
         deck_out = len(self.deck) == 0
-        return no_pokemon or (len(self.prizes) == 0)  # prizes empty == all 6 taken
+        return no_pokemon or (len(self.prizes) == 0)  
 
 
 def setup_player(name: str, decklist: Dict[str, int], cards: Dict[str, Card], rng: random.Random) -> Player:
@@ -112,7 +98,7 @@ def setup_player(name: str, decklist: Dict[str, int], cards: Dict[str, Card], rn
         deck.extend([cards[cid]] * count)
     rng.shuffle(deck)
     p = Player(name=name, deck=deck)
-    # mulligan-free simplified draw of opening hand, ensure >=1 basic
+    
     for _ in range(200):
         p.hand = [p.deck.pop() for _ in range(min(7, len(p.deck)))]
         if any(c.is_pokemon and c.is_basic for c in p.hand):
@@ -120,7 +106,7 @@ def setup_player(name: str, decklist: Dict[str, int], cards: Dict[str, Card], rn
         p.deck.extend(p.hand)
         p.hand = []
         rng.shuffle(p.deck)
-    # put a basic active, others (up to 5) on bench
+  
     basics_in_hand = [c for c in p.hand if c.is_pokemon and c.is_basic]
     first = basics_in_hand[0]
     p.hand.remove(first)
@@ -129,7 +115,7 @@ def setup_player(name: str, decklist: Dict[str, int], cards: Dict[str, Card], rn
         if c.is_pokemon and c.is_basic and len(p.bench) < 5:
             p.hand.remove(c)
             p.bench.append(InPlayPokemon(card=c))
-    # set prizes
+    
     p.prizes = [p.deck.pop() for _ in range(min(PRIZES_TO_WIN, len(p.deck)))]
     return p
 
@@ -153,9 +139,9 @@ class Battle:
         actions = [{"type": "pass"}]
         if p.active is None and p.bench:
             actions.append({"type": "promote", "index": 0})
-            return actions  # must promote before anything else
+            return actions  
 
-        # attach energy from hand (first energy card found, to active or bench)
+        
         if not p.energy_attached_this_turn:
             for idx, c in enumerate(p.hand):
                 if c.category == "Energy":
@@ -164,21 +150,20 @@ class Battle:
                         actions.append({"type": "attach_energy", "hand_index": idx, "target": f"bench{b_i}"})
                     break
 
-        # retreat
+        
         if not p.retreated_this_turn and p.active and p.bench:
             cost = p.active.card.retreat or 0
             if len(p.active.attached_energy) >= cost:
                 for b_i in range(len(p.bench)):
                     actions.append({"type": "retreat", "bench_index": b_i})
 
-        # attacks
+        
         if p.active:
             for a_idx, atk in enumerate(p.active.card.attacks):
                 if p.active.can_pay(atk.cost):
                     actions.append({"type": "attack", "attack_index": a_idx})
 
-        # play trainers (simplified: Potion heals 30, Switch swaps active<->bench,
-        # Professor's Research redraws 7)
+        
         for idx, c in enumerate(p.hand):
             if c.category == "Trainer" and c.name in ("Potion", "Switch", "Professor's Research"):
                 actions.append({"type": "play_trainer", "hand_index": idx, "name": c.name})
@@ -273,7 +258,7 @@ class Battle:
             if opp.active is None and not opp.bench:
                 return i
             if len(opp.deck) == 0 and self.turn_count > 0:
-                # deck-out loss (simplified: checked only after draw fails)
+                
                 pass
         return None
 
@@ -286,7 +271,7 @@ class Battle:
             p.retreated_this_turn = False
 
             if len(p.deck) == 0:
-                return 1 - turn_player  # deck-out loss
+                return 1 - turn_player  
 
             p.draw(1)
 
@@ -296,8 +281,8 @@ class Battle:
                 else:
                     return 1 - turn_player
 
-            # let the agent take actions until it passes or attacks
-            for _ in range(20):  # cap actions per turn
+            
+            for _ in range(20):  
                 actions = self.legal_actions(turn_player)
                 obs = self.build_observation(turn_player)
                 action = self.agents[turn_player].choose_action(obs, actions)
@@ -310,7 +295,7 @@ class Battle:
 
             self.turn_count += 1
             turn_player = 1 - turn_player
-        return -1  # draw / turn cap reached
+        return -1  
 
     def build_observation(self, i) -> dict:
         p, opp = self.players[i], self.opponent(i)
