@@ -22,7 +22,6 @@ A round-robin tournament framework measuring exactly what the rubric scores: sta
 As a data analyst, I approach this as an experiment design problem. The harness produces structured datasets of every game: turn-by-turn state transitions, decision trees, and outcome distributions. This enables post-hoc analysis of why strategies succeed or fail — the core of the Strategy Category rubric.
 
 
-1)files; Decker
 """
 ---------------
 Builds a 60-card deck from the available card pool.
@@ -44,9 +43,7 @@ Design goals (these map directly onto the Strategy Category rubric:
    of any card (except basic Energy), full evolution lines only.
 """
 -------------------------------------------------
-"""
-2)Engine.py
----------
+"""---------
 A simplified, self-contained Pokemon TCG battle engine.
 
 WHY THIS EXISTS: the real Kaggle simulator's observation/action API isn't
